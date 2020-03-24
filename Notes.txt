@@ -1,0 +1,115 @@
+1. create package.json using 'npm init -y' also 'npx gitignore node' if you need too.
+
+2. Install dependencies - nodemon as -D, express(to act as our server), knex(to translate into sql), sqlite3(to talk to our data base), helmet(to protect headers), bcryptjs(to encrypt users passwords), express-session(to have access to users current session), and cors(if you want to connect it to the front end).
+
+3. in the package.json under scripts, write:
+ "server": "nodemon index.js",  -- for development
+ "start": "node index.js"       -- for production
+
+4. create index.js and api folder with server.js inside somewhere.
+
+5. set up index.js and server.js.
+
+6. after, go to the terminal and create knexfile.js using 'knex init'
+
+7. go to knexfile.js and change filename to connect to your database like 
+Ex:
+./data/WHATEEVERYOUCALLIT.db3
+
+
+8. in the development branch, add connection where you want your migration and useNullAsDefault it should look like this:
+Ex:
+development: {
+    client: "sqlite3",
+    connection: {
+      filename: "./data/character.db3"
+    },
+    migrations: {                     ---- if you make migration / table data
+      directory: "./data/migrations"
+    },
+    seeds: {                           ---- if you make seeds / fake data
+      directory: "./data/seeds"
+    },
+    useNullAsDefault: true
+  };
+
+  9.create your db design and set them up using 'knex migrate:make <NAME>'
+
+  10. don't forget to input 'pool' category in knexfile.js if you are using foreign keys
+  Ex:
+  development: {
+    client: 'sqlite3',
+    useNullAsDefault: true,
+    connection: {
+      filename: './data/characters.db3'
+    },
+    migrations: {
+      directory: './data/migrations'
+    },
+    seeds: {
+      directory: './data/seeds'
+    },
+    pool: {
+      afterCreate: (conn, done) => {
+        // runs after a connection is made to the sqlite engine
+        conn.run('PRAGMA foreign_keys = ON', done); // turn on FK enforcement
+      },
+    },
+  },
+
+  11. Once table is done in the migrations file, go to your terminal and 'knex migrate:latest'
+
+  12. You should now have a database file!
+
+  13. Now you want to connect your components to the database. you do this by creating a dbConfig file that connects to your knexfile.js. It should look something like this:
+  Ex:
+    const knex = require("knex");
+    
+    const configToDB = require("../knexfile.js");
+
+    const environment = process.env.DB_ENV || "development";
+
+    module.exports = knex(configToDB[environment]);
+
+14. create helpers file for your routes or server. The server.js should look like this if you are using routes:
+    Ex:
+    server.get('/', (req, res) => {
+    res.send('<p>Hello World</p>')
+    })
+
+    server.use('/api/project', ROUTERFILENAME)
+
+    ***for the helpers it should look like this:
+    Ex:
+    const db = require('../data/configDB')
+
+    module.exports = {
+        find,
+        add
+    }
+
+    function find() {
+    return db('project')
+    } 
+
+    function add(body, id) {
+        return db('project')
+        .where({id})
+        .insert(body)
+    }
+
+15. After you created the helpers you are now ready to create your routes and endpoints:
+    Ex:
+    project.get('/', (req, res) => {
+    plug.find()
+    .then(response => {
+        res.status(200).json(response)
+    })
+    })
+
+    project.post('/', (req, res) => {
+    plug.add(req.body, req.params)
+    .then(response => {
+        res.status(200).json(response)
+    })
+    })
